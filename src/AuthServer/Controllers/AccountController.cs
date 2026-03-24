@@ -100,6 +100,8 @@ public class AccountController : Controller
             Email = model.Email,
             FirstName = model.FirstName,
             LastName = model.LastName,
+            // Email verification is not implemented; set to true to allow immediate login.
+            // Add a proper email confirmation flow before deploying to production.
             EmailConfirmed = true
         };
 

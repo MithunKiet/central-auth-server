@@ -43,10 +43,10 @@ export const config: NextAuthConfig = {
       }
       if (profile) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const p = profile as any;
-        token.roles = p.role ?? [];
-        token.department = p.department;
-        token.userId = p.sub;
+        const oidcProfile = profile as any;
+        token.roles = oidcProfile.role ?? [];
+        token.department = oidcProfile.department;
+        token.userId = oidcProfile.sub;
       }
       return token;
     },

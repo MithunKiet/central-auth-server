@@ -226,5 +226,41 @@ public static class SeedData
             });
             logger.LogInformation("Created OpenIddict application: spa-client");
         }
+
+        if (await applicationManager.FindByClientIdAsync("nextjs-client") == null)
+        {
+            await applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
+            {
+                ClientId = "nextjs-client",
+                DisplayName = "Next.js Client",
+                ClientType = ClientTypes.Public,
+                RedirectUris =
+                {
+                    // Auth.js v5 callback path for provider id "custom-sso"
+                    new Uri("http://localhost:3000/api/auth/callback/custom-sso"),
+                    new Uri("https://oauth.pstmn.io/v1/callback")
+                },
+                PostLogoutRedirectUris = { new Uri("http://localhost:3000/") },
+                Permissions =
+                {
+                    Permissions.Endpoints.Authorization,
+                    Permissions.Endpoints.EndSession,
+                    Permissions.Endpoints.Token,
+                    Permissions.GrantTypes.AuthorizationCode,
+                    Permissions.GrantTypes.RefreshToken,
+                    Permissions.ResponseTypes.Code,
+                    Permissions.Scopes.Email,
+                    Permissions.Scopes.Profile,
+                    Permissions.Scopes.Roles,
+                    $"{Permissions.Prefixes.Scope}api",
+                    $"{Permissions.Prefixes.Scope}roles"
+                },
+                Requirements =
+                {
+                    Requirements.Features.ProofKeyForCodeExchange
+                }
+            });
+            logger.LogInformation("Created OpenIddict application: nextjs-client");
+        }
     }
 }

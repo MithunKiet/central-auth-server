@@ -254,6 +254,9 @@ public class AuthorizationController : Controller
             if (!string.IsNullOrEmpty(user.FullName))
                 claims["name"] = user.FullName;
             claims["preferred_username"] = user.UserName ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(user.Department))
+                claims["department"] = user.Department;
+            claims["userId"] = await _userManager.GetUserIdAsync(user);
         }
 
         if (User.HasScope(Scopes.Roles) || User.HasScope("roles"))

@@ -59,7 +59,7 @@ public static class SeedData
             ?? throw new InvalidOperationException(
                 "SeedData:AdminPassword is not configured. Set it via environment variable or user secrets.");
 
-        const string adminEmail = "admin@authserver.local";
+        const string adminEmail = "admin@sso.local";
         if (await userManager.FindByEmailAsync(adminEmail) == null)
         {
             var admin = new ApplicationUser
@@ -68,6 +68,7 @@ public static class SeedData
                 Email = adminEmail,
                 FirstName = "System",
                 LastName = "Administrator",
+                Department = "IT",
                 // Email confirmation is auto-set for the seed admin; use proper email verification in production.
                 EmailConfirmed = true,
                 IsActive = true

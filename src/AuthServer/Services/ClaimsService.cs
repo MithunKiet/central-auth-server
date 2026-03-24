@@ -43,6 +43,9 @@ public class ClaimsService
                 identity.SetClaim(Claims.Name, user.FullName);
             identity.SetClaim("preferred_username", user.UserName ?? string.Empty);
             identity.SetClaim("created_at", new DateTimeOffset(user.CreatedAt).ToUnixTimeSeconds().ToString());
+            if (!string.IsNullOrWhiteSpace(user.Department))
+                identity.SetClaim("department", user.Department);
+            identity.SetClaim("userId", await _userManager.GetUserIdAsync(user));
         }
 
         if (requestedScopes.Contains(Scopes.Roles) || requestedScopes.Contains("roles"))
@@ -67,7 +70,7 @@ public class ClaimsService
             Claims.Name or Claims.Subject =>
                 [Destinations.AccessToken, Destinations.IdentityToken],
             Claims.Email or Claims.EmailVerified or Claims.GivenName or Claims.FamilyName
-                or "preferred_username" or "created_at" =>
+                or "preferred_username" or "created_at" or "department" or "userId" =>
                 claim.Subject?.HasScope(Scopes.Profile) == true || claim.Subject?.HasScope(Scopes.Email) == true
                     ? [Destinations.AccessToken, Destinations.IdentityToken]
                     : [Destinations.AccessToken],

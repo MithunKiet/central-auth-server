@@ -1,10 +1,11 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddOpenApi();
 
 // CORS - allow Next.js client
 builder.Services.AddCors(options =>
@@ -39,6 +40,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+    app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
+}
 
 app.UseHttpsRedirection();
 app.UseCors("NextJsClient");

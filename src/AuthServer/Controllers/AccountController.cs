@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer.Controllers;
 
+/// <summary>
+/// Handles user account operations: login, registration, logout, and password management.
+/// </summary>
 [Route("account")]
 public class AccountController : Controller
 {
@@ -24,6 +27,10 @@ public class AccountController : Controller
         _logger = logger;
     }
 
+    /// <summary>
+    /// Displays the login page. Clears any external authentication session before rendering.
+    /// </summary>
+    /// <param name="returnUrl">The URL to redirect to after a successful login.</param>
     [HttpGet("login")]
     public async Task<IActionResult> Login(string? returnUrl = null)
     {
@@ -32,6 +39,11 @@ public class AccountController : Controller
         return View(new LoginViewModel { ReturnUrl = returnUrl });
     }
 
+    /// <summary>
+    /// Processes the login form. Supports lookup by username or email address.
+    /// Enforces account lockout after repeated failures and rejects inactive accounts.
+    /// </summary>
+    /// <param name="model">The login credentials submitted by the user.</param>
     [HttpPost("login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
@@ -80,6 +92,10 @@ public class AccountController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Displays the registration page.
+    /// </summary>
+    /// <param name="returnUrl">The URL to redirect to after successful registration.</param>
     [HttpGet("register")]
     public IActionResult Register(string? returnUrl = null)
     {
@@ -87,6 +103,11 @@ public class AccountController : Controller
         return View(new RegisterViewModel { ReturnUrl = returnUrl });
     }
 
+    /// <summary>
+    /// Processes the registration form. Creates the user, assigns the <c>User</c> role,
+    /// and signs them in immediately. Email confirmation is bypassed in the current implementation.
+    /// </summary>
+    /// <param name="model">The registration details submitted by the user.</param>
     [HttpPost("register")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
@@ -124,6 +145,10 @@ public class AccountController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Signs the current user out and redirects to the home page.
+    /// Preferred over the GET variant for direct UI use because it is CSRF-protected.
+    /// </summary>
     [HttpPost("logout")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
@@ -135,6 +160,11 @@ public class AccountController : Controller
 
     // GET logout is provided for OIDC post-logout redirect flows where no form submission is possible.
     // It signs out the session and redirects home. The POST endpoint (with CSRF) is preferred for direct UI use.
+    /// <summary>
+    /// Signs the current user out via a GET request. Intended for OIDC post-logout redirect
+    /// flows where the authorization server cannot perform a form POST. Use the
+    /// CSRF-protected <see cref="Logout"/> POST endpoint for direct UI interactions.
+    /// </summary>
     [HttpGet("logout")]
     public async Task<IActionResult> LogoutCallback()
     {
@@ -142,10 +172,18 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    /// <summary>
+    /// Displays the change-password page. Requires the user to be authenticated.
+    /// </summary>
     [HttpGet("change-password")]
     [Authorize]
     public IActionResult ChangePassword() => View(new ChangePasswordViewModel());
 
+    /// <summary>
+    /// Processes the change-password form. Refreshes the authentication cookie on success
+    /// so the user is not signed out. Requires the user to be authenticated.
+    /// </summary>
+    /// <param name="model">The current and new passwords submitted by the user.</param>
     [HttpPost("change-password")]
     [Authorize]
     [ValidateAntiForgeryToken]
@@ -173,6 +211,9 @@ public class AccountController : Controller
         return View(model);
     }
 
+    /// <summary>
+    /// Displays the access-denied page, shown when a user lacks the required permissions.
+    /// </summary>
     [HttpGet("access-denied")]
     public IActionResult AccessDenied() => View();
 }

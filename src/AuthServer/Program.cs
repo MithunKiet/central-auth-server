@@ -1,5 +1,6 @@
 using AuthServer.Data;
 using AuthServer.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Serilog.Events;
 
@@ -50,7 +51,7 @@ try
     {
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        await db.Database.EnsureCreatedAsync();
+        await db.Database.MigrateAsync();
         await SeedData.SeedAsync(app.Services);
     }
 

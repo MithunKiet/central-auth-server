@@ -55,12 +55,15 @@ public static class SeedData
     {
         // Passwords are read from configuration (SeedData:AdminPassword / SeedData:UserPassword).
         // Set these via environment variables or user secrets — never commit real passwords to source control.
-        var adminPassword = configuration["SeedData:AdminPassword"]
-            ?? throw new InvalidOperationException(
-                "SeedData:AdminPassword is not configured. Set it via environment variable or user secrets.");
+        var adminPassword = configuration["SeedData:AdminPassword"];
+        if (string.IsNullOrEmpty(adminPassword))
+        {
+            logger.LogWarning("SeedData:AdminPassword is not configured — skipping admin user seed.");
+            adminPassword = null;
+        }
 
         const string adminEmail = "admin@sso.local";
-        if (await userManager.FindByEmailAsync(adminEmail) == null)
+        if (adminPassword != null && await userManager.FindByEmailAsync(adminEmail) == null)
         {
             var admin = new ApplicationUser
             {
@@ -85,12 +88,15 @@ public static class SeedData
             }
         }
 
-        var userPassword = configuration["SeedData:UserPassword"]
-            ?? throw new InvalidOperationException(
-                "SeedData:UserPassword is not configured. Set it via environment variable or user secrets.");
+        var userPassword = configuration["SeedData:UserPassword"];
+        if (string.IsNullOrEmpty(userPassword))
+        {
+            logger.LogWarning("SeedData:UserPassword is not configured — skipping standard user seed.");
+            userPassword = null;
+        }
 
         const string userEmail = "user@authserver.local";
-        if (await userManager.FindByEmailAsync(userEmail) == null)
+        if (userPassword != null && await userManager.FindByEmailAsync(userEmail) == null)
         {
             var user = new ApplicationUser
             {
@@ -106,6 +112,80 @@ public static class SeedData
             {
                 await userManager.AddToRoleAsync(user, "User");
                 logger.LogInformation("Created test user: {Email}", userEmail);
+            }
+        }
+
+        var managerPassword = configuration["SeedData:ManagerPassword"];
+        if (string.IsNullOrEmpty(managerPassword))
+        {
+            logger.LogWarning("SeedData:ManagerPassword is not configured — skipping manager user seed.");
+            managerPassword = null;
+        }
+
+        const string managerEmail = "manager@authserver.local";
+        if (managerPassword != null && await userManager.FindByEmailAsync(managerEmail) == null)
+        {
+            var manager = new ApplicationUser
+            {
+                UserName = "manager",
+                Email = managerEmail,
+                FirstName = "Operations",
+                LastName = "Manager",
+                Department = "Operations",
+                EmailConfirmed = true,
+                IsActive = true
+            };
+            var result = await userManager.CreateAsync(manager, managerPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRolesAsync(manager, ["Manager", "User"]);
+                logger.LogInformation("Created manager user: {Email}", managerEmail);
+            }
+            else
+            {
+                logger.LogError("Failed to create manager: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+        }
+
+        const string devEmail = "developer@authserver.local";
+        if (userPassword != null && await userManager.FindByEmailAsync(devEmail) == null)
+        {
+            var developer = new ApplicationUser
+            {
+                UserName = "developer",
+                Email = devEmail,
+                FirstName = "Dev",
+                LastName = "User",
+                Department = "Engineering",
+                EmailConfirmed = true,
+                IsActive = true
+            };
+            var result = await userManager.CreateAsync(developer, userPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(developer, "User");
+                logger.LogInformation("Created developer user: {Email}", devEmail);
+            }
+        }
+
+        const string salesEmail = "sales@authserver.local";
+        if (userPassword != null && await userManager.FindByEmailAsync(salesEmail) == null)
+        {
+            var sales = new ApplicationUser
+            {
+                UserName = "salesuser",
+                Email = salesEmail,
+                FirstName = "Sales",
+                LastName = "User",
+                Department = "Sales",
+                EmailConfirmed = true,
+                IsActive = true
+            };
+            var result = await userManager.CreateAsync(sales, userPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(sales, "User");
+                logger.LogInformation("Created sales user: {Email}", salesEmail);
             }
         }
     }

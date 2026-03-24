@@ -133,8 +133,10 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 
+    // GET logout is provided for OIDC post-logout redirect flows where no form submission is possible.
+    // It signs out the session and redirects home. The POST endpoint (with CSRF) is preferred for direct UI use.
     [HttpGet("logout")]
-    public async Task<IActionResult> LogoutGet()
+    public async Task<IActionResult> LogoutCallback()
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction("Index", "Home");

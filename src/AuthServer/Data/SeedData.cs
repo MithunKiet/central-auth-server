@@ -1,5 +1,6 @@
 using AuthServer.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -14,14 +15,15 @@ public static class SeedData
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         var applicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
         var scopeManager = scope.ServiceProvider.GetRequiredService<IOpenIddictScopeManager>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<object>>();
 
         try
         {
             await SeedRolesAsync(roleManager, logger);
-            await SeedUsersAsync(userManager, logger);
+            await SeedUsersAsync(userManager, configuration, logger);
             await SeedScopesAsync(scopeManager, logger);
-            await SeedApplicationsAsync(applicationManager, logger);
+            await SeedApplicationsAsync(applicationManager, configuration, logger);
         }
         catch (Exception ex)
         {
@@ -46,8 +48,17 @@ public static class SeedData
         }
     }
 
-    private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager, ILogger logger)
+    private static async Task SeedUsersAsync(
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration,
+        ILogger logger)
     {
+        // Passwords are read from configuration (SeedData:AdminPassword / SeedData:UserPassword).
+        // Set these via environment variables or user secrets — never commit real passwords to source control.
+        var adminPassword = configuration["SeedData:AdminPassword"]
+            ?? throw new InvalidOperationException(
+                "SeedData:AdminPassword is not configured. Set it via environment variable or user secrets.");
+
         const string adminEmail = "admin@authserver.local";
         if (await userManager.FindByEmailAsync(adminEmail) == null)
         {
@@ -57,10 +68,11 @@ public static class SeedData
                 Email = adminEmail,
                 FirstName = "System",
                 LastName = "Administrator",
+                // Email confirmation is auto-set for the seed admin; use proper email verification in production.
                 EmailConfirmed = true,
                 IsActive = true
             };
-            var result = await userManager.CreateAsync(admin, "Admin@123456!");
+            var result = await userManager.CreateAsync(admin, adminPassword);
             if (result.Succeeded)
             {
                 await userManager.AddToRolesAsync(admin, ["Admin", "User"]);
@@ -71,6 +83,10 @@ public static class SeedData
                 logger.LogError("Failed to create admin: {Errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }
+
+        var userPassword = configuration["SeedData:UserPassword"]
+            ?? throw new InvalidOperationException(
+                "SeedData:UserPassword is not configured. Set it via environment variable or user secrets.");
 
         const string userEmail = "user@authserver.local";
         if (await userManager.FindByEmailAsync(userEmail) == null)
@@ -84,7 +100,7 @@ public static class SeedData
                 EmailConfirmed = true,
                 IsActive = true
             };
-            var result = await userManager.CreateAsync(user, "User@123456!");
+            var result = await userManager.CreateAsync(user, userPassword);
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(user, "User");
@@ -117,14 +133,27 @@ public static class SeedData
         }
     }
 
-    private static async Task SeedApplicationsAsync(IOpenIddictApplicationManager applicationManager, ILogger logger)
+    private static async Task SeedApplicationsAsync(
+        IOpenIddictApplicationManager applicationManager,
+        IConfiguration configuration,
+        ILogger logger)
     {
+        // Client secrets are read from configuration (SeedData:WebClientSecret / SeedData:M2MClientSecret).
+        // Set these via environment variables or user secrets — never commit real secrets to source control.
+        var webClientSecret = configuration["SeedData:WebClientSecret"]
+            ?? throw new InvalidOperationException(
+                "SeedData:WebClientSecret is not configured. Set it via environment variable or user secrets.");
+
+        var m2mClientSecret = configuration["SeedData:M2MClientSecret"]
+            ?? throw new InvalidOperationException(
+                "SeedData:M2MClientSecret is not configured. Set it via environment variable or user secrets.");
+
         if (await applicationManager.FindByClientIdAsync("web-client") == null)
         {
             await applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = "web-client",
-                ClientSecret = "web-client-secret",
+                ClientSecret = webClientSecret,
                 DisplayName = "Web Client Application",
                 RedirectUris = { new Uri("https://localhost:5001/signin-oidc"), new Uri("https://oauth.pstmn.io/v1/callback") },
                 PostLogoutRedirectUris = { new Uri("https://localhost:5001/signout-callback-oidc") },
@@ -155,7 +184,7 @@ public static class SeedData
             await applicationManager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ClientId = "m2m-client",
-                ClientSecret = "m2m-client-secret",
+                ClientSecret = m2mClientSecret,
                 DisplayName = "Machine-to-Machine Client",
                 Permissions =
                 {

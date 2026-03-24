@@ -1,0 +1,39 @@
+## .NET Build artifacts
+bin/
+obj/
+*.user
+.vs/
+*.suo
+*.sln.docstates
+.idea/
+
+## Logs
+logs/
+*.log
+
+## .NET Secrets
+secrets.json
+
+## VS Code
+.vscode/
+
+## Next.js
+src/NextjsClient/node_modules/
+src/NextjsClient/.next/
+src/NextjsClient/out/
+src/NextjsClient/next-env.d.ts
+src/NextjsClient/.env*.local
+
+## npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+## macOS
+.DS_Store
+
+## TypeScript build info
+*.tsbuildinfo
+
+## Coverage
+coverage/

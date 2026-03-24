@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " - Auth Server" : "Auth Server")</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="site-header">
+        <nav class="navbar">
+            <a class="navbar-brand" asp-action="Index" asp-controller="Home">Auth Server</a>
+            <div class="navbar-links">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <span class="user-info">@User.Identity.Name</span>
+                    <a asp-action="ChangePassword" asp-controller="Account">Change Password</a>
+                    <form asp-action="Logout" asp-controller="Account" method="post" style="display:inline;">
+                        <button type="submit" class="btn-link">Sign Out</button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-action="Login" asp-controller="Account">Sign In</a>
+                    <a asp-action="Register" asp-controller="Account">Register</a>
+                }
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-content">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <p>&copy; @DateTime.UtcNow.Year Central Auth Server. Powered by OpenIddict.</p>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

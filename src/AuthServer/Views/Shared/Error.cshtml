@@ -1,0 +1,16 @@
+@{
+    ViewData["Title"] = "Error";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="auth-container">
+    <div class="auth-card error-card">
+        <div class="auth-header">
+            <h1>An Error Occurred</h1>
+        </div>
+        <div class="alert alert-danger">
+            <p>@(ViewBag.ErrorMessage ?? "An unexpected error occurred. Please try again.")</p>
+        </div>
+        <a asp-action="Index" asp-controller="Home" class="btn btn-primary">Return Home</a>
+    </div>
+</div>

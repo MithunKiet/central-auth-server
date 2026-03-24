@@ -1,0 +1,60 @@
+@{
+    ViewData["Title"] = "Auth Server";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="home-container">
+    <div class="hero">
+        <h1>Central Auth Server</h1>
+        <p class="lead">OpenID Connect &amp; OAuth 2.0 Authorization Server</p>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <h3>OAuth 2.0 / OpenID Connect</h3>
+            <p>Full OAuth 2.0 and OpenID Connect 1.0 support with authorization code, client credentials, and refresh token flows.</p>
+        </div>
+        <div class="feature-card">
+            <h3>PKCE Support</h3>
+            <p>Proof Key for Code Exchange (PKCE) for public clients and single-page applications.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Token Endpoints</h3>
+            <p>Standard endpoints for authorization, token exchange, userinfo, and logout.</p>
+        </div>
+    </div>
+
+    <div class="endpoints-section">
+        <h2>Well-Known Endpoints</h2>
+        <table class="endpoints-table">
+            <thead>
+                <tr><th>Endpoint</th><th>URL</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Discovery</td><td><code>/.well-known/openid-configuration</code></td></tr>
+                <tr><td>Authorization</td><td><code>/connect/authorize</code></td></tr>
+                <tr><td>Token</td><td><code>/connect/token</code></td></tr>
+                <tr><td>Userinfo</td><td><code>/connect/userinfo</code></td></tr>
+                <tr><td>Logout</td><td><code>/connect/logout</code></td></tr>
+                <tr><td>Introspection</td><td><code>/connect/introspect</code></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        <div class="cta">
+            <a asp-action="Login" asp-controller="Account" class="btn btn-primary">Sign In</a>
+            <a asp-action="Register" asp-controller="Account" class="btn btn-secondary">Register</a>
+        </div>
+    }
+    else
+    {
+        <div class="cta">
+            <p>Welcome, <strong>@User.Identity?.Name</strong>!</p>
+            <form asp-action="Logout" asp-controller="Account" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-secondary">Sign Out</button>
+            </form>
+        </div>
+    }
+</div>

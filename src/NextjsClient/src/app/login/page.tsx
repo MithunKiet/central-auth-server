@@ -1,18 +1,20 @@
-"use client";
-
-import { signIn } from "next-auth/react";
+import { signIn } from "@/auth";
 
 export default function LoginPage() {
   return (
     <main style={{ padding: "4rem", textAlign: "center" }}>
       <h1>Sign In</h1>
       <p>Click the button below to sign in with your SSO account.</p>
-      <button
-        onClick={() => signIn("custom-sso", { callbackUrl: "/dashboard" })}
-        style={btnStyle}
+      <form
+        action={async () => {
+          "use server";
+          await signIn("custom-sso", { redirectTo: "/dashboard" });
+        }}
       >
-        Sign In with SSO
-      </button>
+        <button type="submit" style={btnStyle}>
+          Sign In with SSO
+        </button>
+      </form>
     </main>
   );
 }

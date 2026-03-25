@@ -7,8 +7,11 @@ export default auth((req) => {
   const isLoggedIn = !!session;
   const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
 
-  if (isOnDashboard && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", nextUrl));
+  // If the user hits a protected route and either isn't logged in OR their token couldn't be refreshed
+  if (isOnDashboard) {
+    if (!isLoggedIn || session?.error === "RefreshAccessTokenError") {
+      return NextResponse.redirect(new URL("/login", nextUrl));
+    }
   }
 
   return NextResponse.next();

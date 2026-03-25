@@ -21,7 +21,11 @@ try
         .ReadFrom.Services(services)
         .Enrich.FromLogContext());
 
-    builder.Services.AddControllersWithViews();
+    var mvcBuilder = builder.Services.AddControllersWithViews();
+    if (builder.Environment.IsDevelopment())
+    {
+        mvcBuilder.AddRazorRuntimeCompilation();
+    }
     builder.Services.AddApplicationServices(builder.Configuration);
     builder.Services.AddAntiforgery();
 

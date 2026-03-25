@@ -89,6 +89,11 @@ public static class ServiceExtensions
                 options.SetAccessTokenLifetime(TimeSpan.FromMinutes(60));
                 options.SetIdentityTokenLifetime(TimeSpan.FromMinutes(60));
                 options.SetRefreshTokenLifetime(TimeSpan.FromDays(14));
+
+                // NEW: VERY IMPORTANT FOR RESOURCEAPI
+                // Disables OpenIddict's default token encryption so AddJwtBearer() in ResourceApi 
+                // can read and validate the signature natively.
+                options.DisableAccessTokenEncryption();
             })
             .AddValidation(options =>
             {

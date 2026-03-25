@@ -273,10 +273,16 @@ public class AuthorizationController : Controller
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Logout()
     {
+        var request = HttpContext.GetOpenIddictServerRequest();
+        
         await _signInManager.SignOutAsync();
+        
         return SignOut(
             authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-            properties: new AuthenticationProperties { RedirectUri = "/" });
+            properties: new AuthenticationProperties 
+            { 
+                RedirectUri = request?.PostLogoutRedirectUri ?? "/" 
+            });
     }
 
     private async Task<IActionResult> IssueAuthorizationResponse(

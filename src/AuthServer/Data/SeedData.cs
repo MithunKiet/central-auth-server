@@ -198,7 +198,7 @@ public static class SeedData
             {
                 Name = "api",
                 DisplayName = "API Access",
-                Resources = { "resource_server" }
+                Resources = { "api" }
             });
             logger.LogInformation("Created scope: api");
         }
@@ -315,6 +315,7 @@ public static class SeedData
                 ClientId = "nextjs-client",
                 DisplayName = "Next.js Client",
                 ClientType = ClientTypes.Public,
+                ConsentType = ConsentTypes.Implicit,
                 RedirectUris =
                 {
                     // Auth.js v5 callback path for provider id "custom-sso"

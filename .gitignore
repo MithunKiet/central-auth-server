@@ -23,6 +23,7 @@ src/NextjsClient/.next/
 src/NextjsClient/out/
 src/NextjsClient/next-env.d.ts
 src/NextjsClient/.env*.local
+!src/NextjsClient/.env.local
 
 ## npm
 npm-debug.log*

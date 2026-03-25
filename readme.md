@@ -16,7 +16,7 @@ A production-ready **Single Sign-On (SSO) and Authorization System** built on OA
   - [2. ResourceApi Setup](#2-resourceapi-setup)
   - [3. NextjsClient Setup](#3-nextjsclient-setup)
 - [Running the Project](#running-the-project)
-- [Default Seed Credentials](#default-seed-credentials)
+- [Seeded Users](#seeded-users)
 - [Configuration Reference](#configuration-reference)
 - [API Endpoints](#api-endpoints)
 - [Authentication Flows](#authentication-flows)
@@ -155,22 +155,19 @@ dotnet restore
 dotnet build
 ```
 
-Create or update `appsettings.Development.json` with your seed credentials:
+Set your local development secrets with .NET user secrets:
 
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CentralAuthServer;Trusted_Connection=True;"
-  },
-  "SeedData": {
-    "AdminPassword": "Admin@12345",
-    "UserPassword": "User@12345",
-    "WebClientSecret": "<your-web-client-secret>",
-    "M2MClientSecret": "<your-m2m-client-secret>"
-  },
-  "Urls": "https://localhost:5001;http://localhost:5000"
-}
+```bash
+dotnet user-secrets set "SeedData:AdminPassword" "Admin@12345"
+dotnet user-secrets set "SeedData:UserPassword" "User@12345"
+dotnet user-secrets set "SeedData:ManagerPassword" "Manager@12345"
+dotnet user-secrets set "SeedData:WebClientSecret" "dev-web-client-secret-change-me"
+dotnet user-secrets set "SeedData:M2MClientSecret" "dev-m2m-client-secret-change-me"
 ```
+
+You can also set the same values with environment variables such as `SeedData__AdminPassword` and `SeedData__WebClientSecret`.
+
+The default development connection string already points to LocalDB in [src/AuthServer/appsettings.json](c:/Users/240135357/Downloads/MySSO/central-auth-server/src/AuthServer/appsettings.json).
 
 The database is created and migrated automatically on first run.
 
@@ -208,26 +205,26 @@ cd src/NextjsClient
 npm install
 ```
 
-Copy the example environment file and fill in your values:
+Copy the example environment file and adjust it for your machine:
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-`.env.local` variables:
+Example `.env.local` values:
 
 ```env
-# Generate with: openssl rand -base64 32
-AUTH_SECRET=<your-secret>
+AUTH_SECRET=replace-this-with-a-generated-32-byte-secret
+AUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
 
 AUTH_ISSUER=https://localhost:5001
 AUTH_CLIENT_ID=nextjs-client
 
-# ResourceApi base URL
 NEXT_PUBLIC_API_URL=https://localhost:5002
-
-NEXTAUTH_URL=http://localhost:3000
 ```
+
+`nextjs-client` is registered as a public PKCE client, so no client secret is required in the Next.js app.
 
 ---
 
@@ -260,16 +257,19 @@ Open your browser at [http://localhost:3000](http://localhost:3000) and log in w
 
 ---
 
-## Default Seed Credentials
+## Seeded Users
 
-These users are automatically seeded into the database on first run.
+These users are seeded on first run only when the corresponding `SeedData:*Password` values are configured locally.
 
-| Role  | Username   | Email                    | Default Password |
-|-------|------------|--------------------------|------------------|
-| Admin | `admin`    | `admin@sso.local`        | `Admin@12345`    |
-| User  | `testuser` | `user@authserver.local`  | `User@12345`     |
+| Role    | Username    | Email                        | Password Source |
+|---------|-------------|------------------------------|-----------------|
+| Admin   | `admin`     | `admin@sso.local`            | `SeedData:AdminPassword` |
+| User    | `testuser`  | `user@authserver.local`      | `SeedData:UserPassword` |
+| Manager | `manager`   | `manager@authserver.local`   | `SeedData:ManagerPassword` |
+| User    | `developer` | `developer@authserver.local` | `SeedData:UserPassword` |
+| User    | `salesuser` | `sales@authserver.local`     | `SeedData:UserPassword` |
 
-> **Note:** Change these passwords in production via `appsettings.Development.json` and the `SeedData` configuration section.
+> **Note:** No default passwords or OAuth client secrets are committed. Set them through .NET user secrets or environment variables before first run.
 
 ### Pre-registered OAuth Clients
 
@@ -290,7 +290,8 @@ These users are automatically seeded into the database on first run.
 |-----|-------------|
 | `ConnectionStrings:DefaultConnection` | SQL Server connection string |
 | `SeedData:AdminPassword` | Password for the seeded admin user |
-| `SeedData:UserPassword` | Password for the seeded regular user |
+| `SeedData:UserPassword` | Password for the seeded regular users |
+| `SeedData:ManagerPassword` | Password for the seeded manager user |
 | `SeedData:WebClientSecret` | Secret for the `web-client` OAuth client |
 | `SeedData:M2MClientSecret` | Secret for the `m2m-client` OAuth client |
 
@@ -307,6 +308,7 @@ These users are automatically seeded into the database on first run.
 | Variable | Description |
 |----------|-------------|
 | `AUTH_SECRET` | Secret key for NextAuth.js session encryption |
+| `AUTH_URL` | Public base URL of the Next.js app, used for logout redirects |
 | `AUTH_ISSUER` | AuthServer OIDC issuer URL |
 | `AUTH_CLIENT_ID` | OAuth client ID registered in AuthServer |
 | `NEXT_PUBLIC_API_URL` | Base URL of ResourceApi |
@@ -402,7 +404,7 @@ Backend Service         AuthServer
 ## Security Features
 
 - **PKCE** (Proof Key for Code Exchange) enforced for all public clients
-- **JWT signing and encryption** for all tokens
+- **JWT signing** for issued tokens, with access token encryption disabled so `ResourceApi` can validate bearer tokens directly
 - **Password policy**: minimum 8 characters, requires uppercase, lowercase, digit, and special character
 - **Account lockout**: 5 failed login attempts triggers a 15-minute lockout
 - **CSRF protection** via ASP.NET Core antiforgery tokens
